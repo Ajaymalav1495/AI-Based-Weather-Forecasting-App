@@ -68,7 +68,7 @@ set_background(
 st.sidebar.title("Navigation")
 menu = st.sidebar.radio(
     "Select a Section:",
-     ["Current Weather", "7-Time Forecast In a Day ", "Train & Predict Model", "State-Based Forecast Next 7 Day from CSV"]
+    ["Current Weather", "7-Time Forecast In a Day ", "Train & Predict Model", "State-Based Forecast Next 7 Day from CSV"]
 )
 
 # Sidebar API key
@@ -121,8 +121,8 @@ def fetch_weather_forecast(city, api_key):
         "Precipitation (mm)": [entry.get("rain", {}).get("3h", 0) for entry in forecast],
     })
 
-if menu == "7-Day Forecast":
-    st.header("7-Day Weather Forecast")
+if menu == "7-Time Forecast In a Day":
+    st.header("7-Time Forecast In a Day")
     city = st.text_input("Enter city name for forecast:")
     if city and api_key:
         forecast_df = fetch_weather_forecast(city, api_key)
@@ -177,8 +177,8 @@ if menu == "Train & Predict Model":
             st.error(f"Error: {e}")
 
 # --------------------- Section 4: Forecast State-Based CSV ---------------------
-if menu == "State-Based Forecast from CSV":
-    st.header("Forecast from State-wise CSV")
+if menu == "State-Based Forecast Next 7 Day from CSV":
+    st.header("State-Based Forecast Next 7 Day from CSV")
     csv_file = st.file_uploader("Upload IndianWeatherRepository.csv", type=["csv"])
     if csv_file:
         data = pd.read_csv(csv_file)
