@@ -68,7 +68,7 @@ set_background(
 st.sidebar.title("Navigation")
 menu = st.sidebar.radio(
     "Select a Section:",
-    ["Current Weather", "7-Day Forecast", "Train & Predict Model", "State-Based Forecast from CSV"]
+     ["Current Weather", "7-Time Forecast In a Day ", "Train & Predict Model", "State-Based Forecast Next 7 Day from CSV"]
 )
 
 # Sidebar API key
