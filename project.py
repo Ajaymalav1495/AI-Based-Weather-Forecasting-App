@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.metrics import mean_squared_error
 from streamlit_option_menu import option_menu
 
 # --- Streamlit Page Config ---
@@ -17,14 +16,14 @@ st.title("🌍 AI Weather Forecasting & 🌾 Farming Risk Prediction")
 
 # --- Styling ---
 st.markdown("""
-    <<style>
+    <style>
    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
     .stApp {
         background-color: #121212;
         background-image: url('https://ibb.co/sdB9X9RL');
-        background-size: cover; /* Ensures the image covers the whole background */
-        background-repeat: no-repeat; /* Prevents the image from repeating */
-        background-attachment: fixed; /* Ensures the image stays fixed during scrolling */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
         color: #e0e0e0;
         font-family: 'Montserrat', sans-serif;
     }
@@ -87,7 +86,7 @@ with st.sidebar:
 # Sidebar API Key Input
 api_key = "e572ee77cfae76f6c2105f4305468d42"
 
-# --- Function: Current Weather ---
+# --- Function: Fetch Current Weather ---
 def fetch_current_weather(city, api_key):
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     response = requests.get(url)
@@ -102,7 +101,7 @@ def fetch_current_weather(city, api_key):
         "Weather Type": data["weather"][0]["description"]
     }
 
-# --- Function: Forecast ---
+# --- Function: Fetch Weather Forecast ---
 def fetch_weather_forecast(city, api_key):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api_key}&units=metric"
     response = requests.get(url)
@@ -131,12 +130,11 @@ def train_weather_model(data):
     mse = mean_squared_error(y_test, predictions)
     return model, predictions, mse
 
-# --- Function: Agri Risk Predictor ---
+# --- Function: Predict Agri Risk ---
 def predict_agri_risk(temperature, humidity, soil_moisture, pest_level):
     pest_map = {"None": 0, "Mild": 1, "Severe": 2}
     X_sample = pd.DataFrame([[temperature, humidity, soil_moisture, pest_map[pest_level]]], 
                             columns=["Temperature", "Humidity", "Soil Moisture", "Pest Level"])
-    
     np.random.seed(42)
     X_train = pd.DataFrame({
         "Temperature": np.random.randint(10, 50, 100),
@@ -145,14 +143,12 @@ def predict_agri_risk(temperature, humidity, soil_moisture, pest_level):
         "Pest Level": np.random.randint(0, 3, 100)
     })
     y_train = np.random.choice(["Low Risk", "Moderate Risk", "High Risk"], size=100)
-
     model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     prediction = model.predict(X_sample)[0]
     return prediction
 
 # ----------------------- Sections -----------------------
-
 # 1. Current Weather
 if menu == "Current Weather":
     st.header("🌍 Current Weather")
@@ -165,7 +161,7 @@ if menu == "Current Weather":
         else:
             st.error("Failed to fetch weather data.")
 
-# 2. Forecast
+# 2. 7-Time Forecast
 elif menu == "7-Time Forecast":
     st.header("📅 7-Time Forecast")
     city = st.text_input("Enter City:")
@@ -194,17 +190,37 @@ elif menu == "Train & Predict Model":
 
 # 4. State-Based Forecast
 elif menu == "State-Based Forecast":
-    st.header("📍 Forecast by State")
+    st.header("📍 State-Based 7-Day Forecast")
     csv_file = st.file_uploader("Upload CSV", type=["csv"])
-    if csv_file:
-        data = pd.read_csv(csv_file)
-        state = st.text_input("Enter State:")
-        if state:
-            match = data[data["region"].str.title() == state.title()]
-            if not match.empty:
-                st.success(f"🌡 Temp in {state}: {match['temperature_celsius'].iloc[-1]:.2f}°C")
-            else:
-                st.error("No data found for that state.")
+    state = st.text_input("Enter State:")
+    if state:
+        forecast_data = None
+        if csv_file:
+            data = pd.read_csv(csv_file)
+            forecast_data = data[data["region"].str.title() == state.title()]
+            if forecast_data.empty:
+                st.error("No data found for the state in the uploaded file.")
+                forecast_data = None
+        if api_key and forecast_data is None:
+            st.info("Fetching state data using city-based approximation...")
+            city = st.text_input("Enter a city within the state for forecast:")
+            if city:
+                forecast_df = fetch_weather_forecast(city, api_key)
+                if forecast_df is not None:
+                    forecast_data = forecast_df
+                else:
+                    st.error("Error fetching forecast for the city.")
+        if forecast_data is not None:
+            st.subheader(f"7-Day Weather Forecast for {state.title()}")
+            st.dataframe(forecast_data)
+            if "Datetime" in forecast_data and "Temperature (°C)" in forecast_data:
+                fig, ax = plt.subplots(figsize=(10, 5))
+                ax.plot(forecast_data["Datetime"], forecast_data["Temperature (°C)"], marker='o', color="lime")
+                ax.set_title(f"7-Day Temperature Trend for {state.title()}")
+                ax.set_xlabel("Datetime")
+                ax.set_ylabel("Temperature (°C)")
+                plt.xticks(rotation=45)
+                st.pyplot(fig)
 
 # 5. Agri Risk Predictor
 elif menu == "Agri Risk Predictor":
