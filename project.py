@@ -21,7 +21,7 @@ st.markdown("""
    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
     .stApp {
         background-color: #121212;
-        background-image: url('your-image-url-here');
+        background-image: url('https://ibb.co/sdB9X9RL');
         background-size: cover; /* Ensures the image covers the whole background */
         background-repeat: no-repeat; /* Prevents the image from repeating */
         background-attachment: fixed; /* Ensures the image stays fixed during scrolling */
