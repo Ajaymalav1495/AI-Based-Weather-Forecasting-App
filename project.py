@@ -17,10 +17,14 @@ st.title("🌍 AI Weather Forecasting & 🌾 Farming Risk Prediction")
 
 # --- Styling ---
 st.markdown("""
-    <style>
+    <<style>
    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
     .stApp {
         background-color: #121212;
+        background-image: url('your-image-url-here');
+        background-size: cover; /* Ensures the image covers the whole background */
+        background-repeat: no-repeat; /* Prevents the image from repeating */
+        background-attachment: fixed; /* Ensures the image stays fixed during scrolling */
         color: #e0e0e0;
         font-family: 'Montserrat', sans-serif;
     }
@@ -67,7 +71,7 @@ st.markdown("""
     .css-1d391kg {
         color: #ADFF2F;
     }
-    </style>
+</style>
 """, unsafe_allow_html=True)
 
 # --- Sidebar Navigation ---
