@@ -2,19 +2,19 @@ import streamlit as st
 import requests
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import matplotlib.pyplot as plt
+from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.metrics import mean_squared_error
 from streamlit_option_menu import option_menu
 
-# --- Streamlit Page Config ---
-st.set_page_config(page_title="AI Weather & Farming Risk App", layout="wide")
+# ---------------------------- Page Setup ----------------------------
+st.set_page_config(page_title="AI Weather & Agri Risk App", layout="wide")
 st.title("🌍 AI Weather Forecasting & 🌾 Farming Risk Prediction")
 
-# --- Sidebar ---
+# ---------------------------- Sidebar ----------------------------
 with st.sidebar:
     dark_mode = st.checkbox("🌗 Dark Mode", value=True)
     menu = option_menu(
@@ -25,7 +25,7 @@ with st.sidebar:
         default_index=0
     )
 
-# --- Theme Setup ---
+# ---------------------------- Theme Setup ----------------------------
 if dark_mode:
     background = "#121212"
     text_color = "#e0e0e0"
@@ -43,7 +43,6 @@ else:
     box_shadow = "rgba(0, 0, 0, 0.1)"
     background_image = ""
 
-# --- Dynamic Styling ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
@@ -88,10 +87,10 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- API Key ---
+# ---------------------------- API Key ----------------------------
 api_key = "e572ee77cfae76f6c2105f4305468d42"
 
-# --- Functions ---
+# ---------------------------- Utility Functions ----------------------------
 def fetch_current_weather(city, api_key):
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     response = requests.get(url)
@@ -149,7 +148,7 @@ def predict_agri_risk(temperature, humidity, soil_moisture, pest_level):
     model.fit(X_train, y_train)
     return model.predict(X_sample)[0]
 
-# --- App Sections ---
+# ---------------------------- Main App Sections ----------------------------
 if menu == "Current Weather":
     st.header("🌍 Current Weather")
     city = st.text_input("Enter City:")
