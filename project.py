@@ -92,14 +92,14 @@ def fetch_current_weather(city, api_key):
     response = requests.get(url)
     if response.status_code != 200:
         return None
-    data = response.json()
-    return {
+    data = pd.datafreame({
         "Temperature (°C)": data["main"]["temp"],
         "Humidity (%)": data["main"]["humidity"],
         "Pressure (hPa)": data["main"]["pressure"],
         "Wind Speed (m/s)": data["wind"]["speed"],
         "Weather Type": data["weather"][0]["description"]
-    }
+    })
+    return data
 
 # --- Function: Fetch Weather Forecast ---
 def fetch_weather_forecast(city, api_key):
