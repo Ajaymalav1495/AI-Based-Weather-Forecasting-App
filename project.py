@@ -14,67 +14,9 @@ from streamlit_option_menu import option_menu
 st.set_page_config(page_title="AI Weather & Farming Risk App", layout="wide")
 st.title("🌍 AI Weather Forecasting & 🌾 Farming Risk Prediction")
 
-# --- Styling ---
-st.markdown("""
-    <style>
-   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-    .stApp {
-        background-color: #121212;
-        background-image: url('https://ibb.co/sdB9X9RL');
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        color: #e0e0e0;
-        font-family: 'Montserrat', sans-serif;
-    }
-    h1, h2, h3, h4 {
-        color: #ADFF2F;
-        font-weight: 700;
-    }
-    .header {
-        font-size: 36px;
-        color: #ADFF2F;
-        text-align: center;
-        margin-top: 30px;
-    }
-    .subheader {
-        font-size: 24px;
-        color: #FFFFFF;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    .btn {
-        background-color: #ADFF2F !important;
-        color: #000 !important;
-        padding: 12px 24px;
-        border-radius: 30px;
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-top: 20px;
-    }
-    .card {
-        background: #1e1e1e;
-        padding: 20px;
-        margin: 20px 0;
-        border-radius: 15px;
-        box-shadow: 0px 4px 10px rgba(0, 255, 0, 0.15);
-    }
-    .stTextInput>div>div>input {
-        background-color: #2c2c2c;
-        color: white;
-    }
-    .stFileUploader, .stTextInput, .stSelectbox, .stNumberInput {
-        background-color: #2c2c2c;
-        border-radius: 10px;
-    }
-    .css-1d391kg {
-        color: #ADFF2F;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# --- Sidebar Navigation ---
+# --- Sidebar ---
 with st.sidebar:
+    dark_mode = st.checkbox("🌗 Dark Mode", value=True)
     menu = option_menu(
         menu_title="Navigation",
         options=["Current Weather", "7-Time Forecast", "Train & Predict Model", "State-Based Forecast", "Agri Risk Predictor"],
@@ -83,25 +25,87 @@ with st.sidebar:
         default_index=0
     )
 
-# Sidebar API Key Input
+# --- Theme Setup ---
+if dark_mode:
+    background = "#121212"
+    text_color = "#e0e0e0"
+    header_color = "#ADFF2F"
+    card_bg = "#1e1e1e"
+    input_bg = "#2c2c2c"
+    box_shadow = "rgba(0, 255, 0, 0.15)"
+    background_image = "background-image: url('https://ibb.co/sdB9X9RL');"
+else:
+    background = "#f9f9f9"
+    text_color = "#000"
+    header_color = "#000"
+    card_bg = "#ffffff"
+    input_bg = "#ffffff"
+    box_shadow = "rgba(0, 0, 0, 0.1)"
+    background_image = ""
+
+# --- Dynamic Styling ---
+st.markdown(f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+    .stApp {{
+        background-color: {background};
+        {background_image}
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        color: {text_color};
+        font-family: 'Montserrat', sans-serif;
+    }}
+    h1, h2, h3, h4 {{
+        color: {header_color};
+        font-weight: 700;
+    }}
+    .btn {{
+        background-color: #ADFF2F !important;
+        color: #000 !important;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 20px;
+    }}
+    .card {{
+        background: {card_bg};
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 15px;
+        box-shadow: 0px 4px 10px {box_shadow};
+    }}
+    .stTextInput>div>div>input {{
+        background-color: {input_bg};
+        color: {text_color};
+    }}
+    .stFileUploader, .stTextInput, .stSelectbox, .stNumberInput {{
+        background-color: {input_bg};
+        border-radius: 10px;
+        color: {text_color};
+    }}
+    </style>
+""", unsafe_allow_html=True)
+
+# --- API Key ---
 api_key = "e572ee77cfae76f6c2105f4305468d42"
 
-# --- Function: Fetch Current Weather ---
+# --- Functions ---
 def fetch_current_weather(city, api_key):
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     response = requests.get(url)
     if response.status_code != 200:
         return None
-    data = pd.datafreame({
-        "Temperature (°C)": data["main"]["temp"],
-        "Humidity (%)": data["main"]["humidity"],
-        "Pressure (hPa)": data["main"]["pressure"],
-        "Wind Speed (m/s)": data["wind"]["speed"],
-        "Weather Type": data["weather"][0]["description"]
+    data = response.json()
+    return pd.DataFrame({
+        "Temperature (°C)": [data["main"]["temp"]],
+        "Humidity (%)": [data["main"]["humidity"]],
+        "Pressure (hPa)": [data["main"]["pressure"]],
+        "Wind Speed (m/s)": [data["wind"]["speed"]],
+        "Weather Type": [data["weather"][0]["description"]]
     })
-    return data
 
-# --- Function: Fetch Weather Forecast ---
 def fetch_weather_forecast(city, api_key):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api_key}&units=metric"
     response = requests.get(url)
@@ -115,7 +119,6 @@ def fetch_weather_forecast(city, api_key):
         "Wind Speed (m/s)": [entry["wind"]["speed"] for entry in forecast]
     })
 
-# --- Function: Train Model ---
 def train_weather_model(data):
     features = ["temperature_celsius", "humidity", "wind_kph", "pressure_mb", "precip_mm"]
     target = "temperature_celsius"
@@ -130,7 +133,6 @@ def train_weather_model(data):
     mse = mean_squared_error(y_test, predictions)
     return model, predictions, mse
 
-# --- Function: Predict Agri Risk ---
 def predict_agri_risk(temperature, humidity, soil_moisture, pest_level):
     pest_map = {"None": 0, "Mild": 1, "Severe": 2}
     X_sample = pd.DataFrame([[temperature, humidity, soil_moisture, pest_map[pest_level]]], 
@@ -145,30 +147,27 @@ def predict_agri_risk(temperature, humidity, soil_moisture, pest_level):
     y_train = np.random.choice(["Low Risk", "Moderate Risk", "High Risk"], size=100)
     model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
-    prediction = model.predict(X_sample)[0]
-    return prediction
+    return model.predict(X_sample)[0]
 
-# ----------------------- Sections -----------------------
-# 1. Current Weather
+# --- App Sections ---
 if menu == "Current Weather":
     st.header("🌍 Current Weather")
     city = st.text_input("Enter City:")
-    if city and api_key:
+    if city:
         weather = fetch_current_weather(city, api_key)
-        if weather:
+        if weather is not None:
             st.subheader(f"Weather in {city.title()}")
             st.write(weather)
         else:
             st.error("Failed to fetch weather data.")
 
-# 2. 7-Time Forecast
 elif menu == "7-Time Forecast":
     st.header("📅 7-Time Forecast")
     city = st.text_input("Enter City:")
-    if city and api_key:
+    if city:
         forecast_df = fetch_weather_forecast(city, api_key)
         if forecast_df is not None:
-            st.dataframe(forecast_df.style.set_properties(**{"background": "#333", "color": "white"}))
+            st.dataframe(forecast_df)
             fig, ax = plt.subplots(figsize=(10, 5))
             ax.plot(forecast_df["Datetime"], forecast_df["Temperature (°C)"], marker='o', color="lime")
             ax.set_title(f"Temperature Forecast for {city.title()}")
@@ -179,7 +178,6 @@ elif menu == "7-Time Forecast":
         else:
             st.error("Error fetching forecast.")
 
-# 3. Train & Predict Model
 elif menu == "Train & Predict Model":
     st.header("🔬 Train Model with CSV")
     uploaded = st.file_uploader("Upload Weather CSV", type=["csv"])
@@ -188,7 +186,6 @@ elif menu == "Train & Predict Model":
         model, predictions, mse = train_weather_model(df)
         st.success(f"Model trained. MSE: {mse:.2f}")
 
-# 4. State-Based Forecast
 elif menu == "State-Based Forecast":
     st.header("📍 State-Based 7-Day Forecast")
     csv_file = st.file_uploader("Upload CSV", type=["csv"])
@@ -201,15 +198,14 @@ elif menu == "State-Based Forecast":
             if forecast_data.empty:
                 st.error("No data found for the state in the uploaded file.")
                 forecast_data = None
-        if api_key and forecast_data is None:
-            st.info("Fetching state data using city-based approximation...")
+        if forecast_data is None:
             city = st.text_input("Enter a city within the state for forecast:")
             if city:
                 forecast_df = fetch_weather_forecast(city, api_key)
                 if forecast_df is not None:
                     forecast_data = forecast_df
                 else:
-                    st.error("Error fetching forecast for the city.")
+                    st.error("Error fetching forecast.")
         if forecast_data is not None:
             st.subheader(f"7-Day Weather Forecast for {state.title()}")
             st.dataframe(forecast_data)
@@ -222,20 +218,19 @@ elif menu == "State-Based Forecast":
                 plt.xticks(rotation=45)
                 st.pyplot(fig)
 
-# 5. Agri Risk Predictor
 elif menu == "Agri Risk Predictor":
     st.header("🌾 Agricultural Risk Predictor")
     city = st.text_input("Enter City for Weather:")
-    if city and api_key:
+    if city:
         weather_data = fetch_current_weather(city, api_key)
-        if weather_data:
+        if weather_data is not None:
             st.success("Weather Data Retrieved")
             st.write(weather_data)
             soil = np.random.randint(20, 80)
             pest = np.random.choice(["None", "Mild", "Severe"])
             st.write(f"Soil Moisture: {soil}%")
             st.write(f"Pest Level: {pest}")
-            risk = predict_agri_risk(weather_data["Temperature (°C)"], weather_data["Humidity (%)"], soil, pest)
+            risk = predict_agri_risk(weather_data["Temperature (°C)"][0], weather_data["Humidity (%)"][0], soil, pest)
             st.success(f"🌿 Predicted Agri Risk: **{risk}**")
         else:
             st.error("Failed to fetch weather data.")
